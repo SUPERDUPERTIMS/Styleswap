@@ -97,11 +97,14 @@ st.markdown("""
 # Upload Section Card
 st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 st.markdown("### 📤 1. Upload Source Image")
-uploaded_file = st.file_uploader("Choose a photo (PNG, JPG)", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Choose or snap a photo", type=None)
 
+# Initialize session state for holding uploaded image reference
 if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Base Image Preview", use_container_width=True)
+    st.session_state['image'] = Image.open(uploaded_file)
+
+if 'image' in st.session_state:
+    st.image(st.session_state['image'], caption="Base Image Loaded", use_container_width=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Topic Selection Card
@@ -143,13 +146,24 @@ st.markdown(f"""
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Action Trigger
+# Action Trigger & Visual Result Section
 if st.button("✨ Render Style Transformation", use_container_width=True):
-    if uploaded_file is not None:
+    if 'image' in st.session_state:
         with st.spinner("Synthesizing neural wardrobe mapping..."):
-            st.markdown('<div class="glass-card" style="text-align: center;">', unsafe_allow_html=True)
+            st.markdown('<div class="glass-card">', unsafe_allow_html=True)
             st.success(f"Successfully generated **{selected_topic}** look!")
-            st.markdown(f"<p style='color: #94a3b8; font-size: 0.9rem;'>Applied configuration matches high-end studio parameters.</p>", unsafe_allow_html=True)
+            
+            # Side-by-side comparison layout
+            col1, col2 = st.columns(2)
+            with col1:
+                st.caption("Original Source")
+                st.image(st.session_state['image'], use_container_width=True)
+            with col2:
+                st.caption(f"Transformed ({selected_topic})")
+                # Displays the original image with styling overlay indicator as a visual preview placeholder
+                st.image(st.session_state['image'], use_container_width=True)
+                st.info(f"Theme applied: {selected_topic}")
+                
             st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.warning("Please upload a source image first.")
+        st.warning("Please upload a source image first before rendering.")
